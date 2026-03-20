@@ -1,4 +1,4 @@
-import pandas as pd
+new_code = '''import pandas as pd
 import os
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "superstore_clean.csv")
@@ -20,10 +20,10 @@ def load_data():
 def get_summary(df):
     return {
         "total_rows"  : len(df),
-        "date_range"  : f"{df['order_date'].min().date()} to {df['order_date'].max().date()}",
+        "date_range"  : f"{df[\'order_date\'].min().date()} to {df[\'order_date\'].max().date()}",
         "categories"  : df["category"].unique().tolist(),
         "regions"     : df["region"].unique().tolist(),
-        "total_revenue": f"${df['revenue'].sum():,.2f}",
+        "total_revenue": f"${df[\'revenue\'].sum():,.2f}",
     }
 
 if __name__ == "__main__":
@@ -31,3 +31,8 @@ if __name__ == "__main__":
     print("Shape:", df.shape)
     print("Years:", sorted(df["year"].unique().tolist()))
     print("Revenue: $", df["revenue"].sum().round(2))
+'''
+
+with open('src/data_loader.py', 'w', encoding='utf-8') as f:
+    f.write(new_code)
+print("data_loader.py updated!")

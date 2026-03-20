@@ -221,7 +221,7 @@ def update_dashboard(region, category, year):
                   "Revenue per order"),
         _kpi_card("📈 YoY Growth",
                   f"{growth_arrow} {abs(yoy['growth_pct'])}%",
-                  f"2023: ${yoy['revenue_2023']:,.0f}  →  2024: ${yoy['revenue_2024']:,.0f}",
+                  f"Prev Year: ${yoy['revenue_2023']:,.0f}  →  Latest: ${yoy['revenue_2024']:,.0f}",
                   value_class=growth_color),
     ]
 
