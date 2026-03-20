@@ -13,6 +13,8 @@ from charts      import (
     chart_yoy_comparison,
     chart_top_products,
     chart_discount_impact,
+    chart_forecast,
+    chart_heatmap,
 )
 
 # ── Bootstrap the app ────────────────────────────────────────
@@ -126,6 +128,24 @@ app.layout = html.Div([
             ),
         ], className="chart-row-half"),
 
+        # Row 5 — Forecast full width
+        html.Div(
+            html.Div(
+                dcc.Graph(id="chart-forecast", config={"displayModeBar": False}),
+                className="chart-card"
+            ),
+            className="chart-row-full"
+        ),
+
+        # Row 6 — Heatmap full width
+        html.Div(
+            html.Div(
+                dcc.Graph(id="chart-heatmap", config={"displayModeBar": False}),
+                className="chart-card"
+            ),
+            className="chart-row-full"
+        ),
+
     ], className="charts-container"),
 
     # ── Narrative Section ────────────────────────────────────
@@ -166,6 +186,8 @@ def _narrative_item(icon, text):
     Output("chart-yoy",         "figure"),
     Output("chart-products",    "figure"),
     Output("chart-discount",    "figure"),
+    Output("chart-forecast",    "figure"),
+    Output("chart-heatmap",     "figure"),
     Output("narrative-content", "children"),
     Input("filter-region",      "value"),
     Input("filter-category",    "value"),
@@ -234,6 +256,8 @@ def update_dashboard(region, category, year):
         chart_yoy_comparison(df),
         chart_top_products(df),
         chart_discount_impact(df),
+        chart_forecast(df),
+        chart_heatmap(df),
         narrative,
     )
 
