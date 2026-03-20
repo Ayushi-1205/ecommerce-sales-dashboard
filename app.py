@@ -49,31 +49,31 @@ app.layout = html.Div([
         html.Div([
             html.Div("🌍 Region", className="filter-label"),
             dcc.Dropdown(
-                id      = "filter-region",
-                options = region_options,
-                value   = "ALL",
+                id        = "filter-region",
+                options   = region_options,
+                value     = "ALL",
                 clearable = False,
-                style   = {"width": "180px", "color": "#0F172A"},
+                style     = {"width": "180px", "color": "#0F172A"},
             ),
         ]),
         html.Div([
             html.Div("🏷️ Category", className="filter-label"),
             dcc.Dropdown(
-                id      = "filter-category",
-                options = category_options,
-                value   = "ALL",
+                id        = "filter-category",
+                options   = category_options,
+                value     = "ALL",
                 clearable = False,
-                style   = {"width": "200px", "color": "#0F172A"},
+                style     = {"width": "200px", "color": "#0F172A"},
             ),
         ]),
         html.Div([
             html.Div("📅 Year", className="filter-label"),
             dcc.Dropdown(
-                id      = "filter-year",
-                options = year_options,
-                value   = "ALL",
+                id        = "filter-year",
+                options   = year_options,
+                value     = "ALL",
                 clearable = False,
-                style   = {"width": "150px", "color": "#0F172A"},
+                style     = {"width": "150px", "color": "#0F172A"},
             ),
         ]),
     ], className="filter-bar"),
@@ -86,32 +86,44 @@ app.layout = html.Div([
 
         # Row 1 — Full width trend
         html.Div(
-            html.Div(dcc.Graph(id="chart-trend", config={"displayModeBar": False}),
-                     className="chart-card"),
+            html.Div(
+                dcc.Graph(id="chart-trend", config={"displayModeBar": False}),
+                className="chart-card"
+            ),
             className="chart-row-full"
         ),
 
-        # Row 2 — Category + Region side by side
+        # Row 2 — Category + Region
         html.Div([
-            html.Div(dcc.Graph(id="chart-category", config={"displayModeBar": False}),
-                     className="chart-card"),
-            html.Div(dcc.Graph(id="chart-region", config={"displayModeBar": False}),
-                     className="chart-card"),
+            html.Div(
+                dcc.Graph(id="chart-category", config={"displayModeBar": False}),
+                className="chart-card"
+            ),
+            html.Div(
+                dcc.Graph(id="chart-region", config={"displayModeBar": False}),
+                className="chart-card"
+            ),
         ], className="chart-row-half"),
 
         # Row 3 — Full width YoY
         html.Div(
-            html.Div(dcc.Graph(id="chart-yoy", config={"displayModeBar": False}),
-                     className="chart-card"),
+            html.Div(
+                dcc.Graph(id="chart-yoy", config={"displayModeBar": False}),
+                className="chart-card"
+            ),
             className="chart-row-full"
         ),
 
-        # Row 4 — Top Products + Discount side by side
+        # Row 4 — Top Products + Discount
         html.Div([
-            html.Div(dcc.Graph(id="chart-products", config={"displayModeBar": False}),
-                     className="chart-card"),
-            html.Div(dcc.Graph(id="chart-discount", config={"displayModeBar": False}),
-                     className="chart-card"),
+            html.Div(
+                dcc.Graph(id="chart-products", config={"displayModeBar": False}),
+                className="chart-card"
+            ),
+            html.Div(
+                dcc.Graph(id="chart-discount", config={"displayModeBar": False}),
+                className="chart-card"
+            ),
         ], className="chart-row-half"),
 
     ], className="charts-container"),
@@ -126,20 +138,38 @@ app.layout = html.Div([
 
 
 # ─────────────────────────────────────────────────────────────
-#  CALLBACK — Updates everything when filters change
+#  HELPERS
+# ─────────────────────────────────────────────────────────────
+def _kpi_card(label, value, sub, value_class=""):
+    return html.Div([
+        html.Div(label, className="kpi-label"),
+        html.Div(value, className=f"kpi-value {value_class}"),
+        html.Div(sub,   className="kpi-sub"),
+    ], className="kpi-card")
+
+
+def _narrative_item(icon, text):
+    return html.Div([
+        html.Span(icon, style={"fontSize": "20px", "minWidth": "28px"}),
+        html.Span(text, style={"lineHeight": "1.6", "color": "#CBD5E1"}),
+    ], className="narrative-item")
+
+
+# ─────────────────────────────────────────────────────────────
+#  CALLBACK
 # ─────────────────────────────────────────────────────────────
 @callback(
-    Output("kpi-cards",       "children"),
-    Output("chart-trend",     "figure"),
-    Output("chart-category",  "figure"),
-    Output("chart-region",    "figure"),
-    Output("chart-yoy",       "figure"),
-    Output("chart-products",  "figure"),
-    Output("chart-discount",  "figure"),
+    Output("kpi-cards",         "children"),
+    Output("chart-trend",       "figure"),
+    Output("chart-category",    "figure"),
+    Output("chart-region",      "figure"),
+    Output("chart-yoy",         "figure"),
+    Output("chart-products",    "figure"),
+    Output("chart-discount",    "figure"),
     Output("narrative-content", "children"),
-    Input("filter-region",   "value"),
-    Input("filter-category", "value"),
-    Input("filter-year",     "value"),
+    Input("filter-region",      "value"),
+    Input("filter-category",    "value"),
+    Input("filter-year",        "value"),
 )
 def update_dashboard(region, category, year):
 
@@ -156,13 +186,16 @@ def update_dashboard(region, category, year):
     growth_color = "kpi-positive" if yoy["growth_pct"] >= 0 else "kpi-negative"
     growth_arrow = "▲" if yoy["growth_pct"] >= 0 else "▼"
 
-    # ── KPI Cards HTML ────────────────────────────────────────
+    # ── KPI Cards ─────────────────────────────────────────────
     kpi_cards = [
-        _kpi_card("💰 Total Revenue",  f"${kpis['total_revenue']:,.0f}",
+        _kpi_card("💰 Total Revenue",
+                  f"${kpis['total_revenue']:,.0f}",
                   "Gross revenue across all orders"),
-        _kpi_card("📦 Total Orders",   f"{kpis['total_orders']:,}",
+        _kpi_card("📦 Total Orders",
+                  f"{kpis['total_orders']:,}",
                   "Unique transactions"),
-        _kpi_card("🛒 Avg Order Value", f"${kpis['aov']:,.2f}",
+        _kpi_card("🛒 Avg Order Value",
+                  f"${kpis['aov']:,.2f}",
                   "Revenue per order"),
         _kpi_card("📈 YoY Growth",
                   f"{growth_arrow} {abs(yoy['growth_pct'])}%",
@@ -171,26 +204,26 @@ def update_dashboard(region, category, year):
     ]
 
     # ── Narrative ─────────────────────────────────────────────
-    top_cat = kpis["top_category"]
-    top_reg = kpis["top_region"]
-    trend   = kpis["monthly_trend"]
+    top_cat    = kpis["top_category"]
+    top_reg    = kpis["top_region"]
+    trend      = kpis["monthly_trend"]
     peak_month = trend.loc[trend["total_revenue"].idxmax(), "year_month"]
 
     narrative = [
-        _narrative_item("🏆", f"<b>{top_cat['name']}</b> is the top-performing category, "
-            f"contributing <b>{top_cat['revenue_share']}</b> of total revenue. "
-            f"Consider increasing inventory and ad spend here."),
-        _narrative_item("🌍", f"<b>{top_reg['name']}</b> leads all regions with "
-            f"<b>{top_reg['revenue_share']}</b> of revenue. "
-            f"Explore why other regions are lagging and replicate the winning strategy."),
-        _narrative_item("📅", f"Revenue peaked in <b>{peak_month}</b>. "
-            f"Align promotions and stock replenishment before this month next year."),
-        _narrative_item("📈", f"Year-over-Year growth is "
-            f"<b>{yoy['growth_pct']}%</b>. "
-            + ("The business is expanding — maintain momentum." if yoy["growth_pct"] >= 0
-               else "Revenue declined — investigate top drop-off categories immediately.")),
-        _narrative_item("🛒", f"Average Order Value is <b>${kpis['aov']:,.2f}</b>. "
-            f"To increase AOV, introduce product bundles, upsells, and free shipping thresholds."),
+        _narrative_item("🏆", f"{top_cat['name']} is the top category with "
+            f"{top_cat['revenue_share']} of total revenue. "
+            f"Increase inventory and ad spend here."),
+        _narrative_item("🌍", f"{top_reg['name']} leads all regions with "
+            f"{top_reg['revenue_share']} of revenue. "
+            f"Replicate this strategy in underperforming regions."),
+        _narrative_item("📅", f"Revenue peaked in {peak_month}. "
+            f"Plan promotions and stock replenishment before this period next year."),
+        _narrative_item("📈",
+            f"Year-over-Year growth is {yoy['growth_pct']}%. " +
+            ("Business is expanding — maintain momentum." if yoy["growth_pct"] >= 0
+             else "Revenue declined — investigate top drop-off categories immediately.")),
+        _narrative_item("🛒", f"Average Order Value is ${kpis['aov']:,.2f}. "
+            f"Introduce product bundles and free shipping thresholds to increase AOV."),
     ]
 
     return (
@@ -203,27 +236,6 @@ def update_dashboard(region, category, year):
         chart_discount_impact(df),
         narrative,
     )
-
-
-# ─────────────────────────────────────────────────────────────
-#  HELPER FUNCTIONS
-# ─────────────────────────────────────────────────────────────
-def _kpi_card(label, value, sub, value_class=""):
-    return html.Div([
-        html.Div(label, className="kpi-label"),
-        html.Div(value, className=f"kpi-value {value_class}"),
-        html.Div(sub,   className="kpi-sub"),
-    ], className="kpi-card")
-
-
-def _narrative_item(icon, text):
-    return html.Div([
-        html.Span(icon, style={"fontSize": "20px", "minWidth": "28px"}),
-        html.Span(dangerously_allow_html=True, children=[], 
-                  style={"display":"none"}),
-        html.P(text, style={"margin": 0},
-               dangerouslyAllowHTML=False),
-    ], className="narrative-item")
 
 
 # ─────────────────────────────────────────────────────────────
